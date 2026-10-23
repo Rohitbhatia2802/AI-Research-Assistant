@@ -8,7 +8,8 @@ from services.save_markdown import save_markdown
 @tool
 def research_report_all(topic: str) -> str:
     """
-    ONLY use this tool when the user explicitly requests BOTH PDF and Markdown.
+    ONLY when the user says 'save as both', 'export both PDF and Markdown', or 'download both'.
+    This saves both .pdf and .md files to disk. Do NOT call this for normal research questions.
     """
 
     report = generate_research_report(topic)

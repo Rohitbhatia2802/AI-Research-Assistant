@@ -7,7 +7,8 @@ from services.save_markdown import save_markdown
 @tool
 def research_report_markdown(topic: str) -> str:
     """
-    ONLY use this tool when the user explicitly asks to save the report as Markdown.
+    ONLY when the user says words like 'save as Markdown', 'export MD', or 'download Markdown'.
+    This saves a .md file to disk. Do NOT call this for normal research questions.
     """
 
     report = generate_research_report(topic)

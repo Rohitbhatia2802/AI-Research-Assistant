@@ -4,6 +4,7 @@ from chains.summarize_chain import summarize_chain
 from chains.report_chain import report_chain
 from tools.search_tool import search_tool
 from utils.documentFilter import filter_documents
+import time
 
 
 
@@ -38,6 +39,8 @@ def generate_research_report(  topic:str):
         )
 
         summaries.append(summary)
+
+        time.sleep(0.5) 
 
     # Combine summaries
     combined_summaries = "\n\n".join(summaries)

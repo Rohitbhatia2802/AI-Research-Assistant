@@ -7,7 +7,8 @@ from services.save_pdf import save_pdf
 @tool
 def research_report_pdf(topic: str) -> str:
     """
-    ONLY use this tool when the user explicitly asks to save the report as a PDF.
+    ONLY when the user says words like 'save as PDF', 'export PDF', or 'download PDF'.
+    This saves a .pdf file to disk. Do NOT call this for normal research questions.
     """
 
     report = generate_research_report(topic)
