@@ -1,32 +1,25 @@
 from langchain_core.documents import Document
 
-MINIMUM_LENGTH=300
+MINIMUM_LENGTH = 300
 
 ERROR_PATTERNS = [
-    "429 Too Many Requests",
-    "Too many requests",
-    "Request served by",
-    "Varnish",
-    "Cloudflare",
-    "Access Denied",
-    "Forbidden",
-    "Bad Gateway",
-    "Service Unavailable",
-    "404",
-    "403",
-    "500 Internal Server Error",
-    "Captcha",
-    "Verify you are human",
+    "429 too many requests",
+    "access denied",
+    "403 forbidden",
+    "404 not found",
+    "500 internal server error",
+    "502 bad gateway",
+    "503 service unavailable",
+    "verify you are human",
+    "checking your browser before accessing",
+    "enable javascript and cookies to continue",
 ]
 
 NOISE_PATTERNS = [
-    "Privacy Policy",
-    "Terms of Service",
-    "Cookie Policy",
-    "Sign In",
-    "Login",
-    "Register",
-    "Subscribe",
+    "please log in to continue",
+    "sign in to your account",
+    "you need to enable cookies",
+    "create an account to continue reading",
 ]
 
 # ---------------------- Helper Functions ---------------------- #
@@ -47,35 +40,34 @@ def is_short(content: str) -> bool:
 
 def is_duplicate(content: str, seen_content: set) -> bool:
     """
-    Check if document content already exists.
+    Check if document content prefix already exists.
     """
-    return content in seen_content
+    prefix = content[:500]
+    return prefix in seen_content
 
 
 def is_error_page(content: str) -> bool:
     """
     Detect common server error pages.
+    Error pages are typically short (< 2000 chars) and contain an explicit error indicator.
     """
-    content = content.lower()
-
-    return any(
-        pattern.lower() in content
-        for pattern in ERROR_PATTERNS
-    )
+    if len(content) < 2000:
+        lower = content.lower()
+        return any(pattern in lower for pattern in ERROR_PATTERNS)
+    return False
 
 
 def is_noise_page(content: str) -> bool:
     """
-    Detect navigation or boilerplate pages.
+    Detect navigation, paywall, or login-only pages.
+    Only classifies as noise if the document is short and predominantly a login/cookie barrier.
     """
-    content = content.lower()
+    if len(content) < 1000:
+        lower = content.lower()
+        return any(pattern in lower for pattern in NOISE_PATTERNS)
+    return False
 
-    return any(
-        pattern.lower() in content
-        for pattern in NOISE_PATTERNS
-    )
-
-#--------------Main Function--------------------------#
+# ---------------------- Main Function -------------------------- #
 
 def filter_documents(documents: list[Document]) -> list[Document]:
     """
@@ -83,17 +75,15 @@ def filter_documents(documents: list[Document]) -> list[Document]:
 
     Removes:
     - Empty pages
-    - Very short pages
+    - Very short pages (< 300 chars)
     - Duplicate pages
-    - Error pages (429, Cloudflare, etc.)
-    - Navigation / boilerplate pages
+    - Explicit server error pages
+    - Pure login/paywall barrier pages
     """
-
     filtered_documents = []
     seen_content = set()
 
     for document in documents:
-
         content = document.page_content.strip()
 
         # Empty document
@@ -111,19 +101,18 @@ def filter_documents(documents: list[Document]) -> list[Document]:
             print("Skipped: Duplicate document")
             continue
 
-        # HTTP / Server error pages
+        # Server error pages
         if is_error_page(content):
             print("Skipped: Error page")
             continue
 
-        # Navigation / Boilerplate pages
+        # Pure login/boilerplate pages
         if is_noise_page(content):
             print("Skipped: Noise page")
             continue
 
-        seen_content.add(content)
+        seen_content.add(content[:500])
         filtered_documents.append(document)
 
     print(f"\nFiltered {len(filtered_documents)} valid document(s).\n")
-
     return filtered_documents
