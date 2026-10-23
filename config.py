@@ -1,6 +1,13 @@
-from langchain_ollama import ChatOllama
+import os
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
 
-llm = ChatOllama(
-    model="llama3.2",
+load_dotenv()
+
+# Uses Groq hosted inference. Default model can be customized via GROQ_MODEL in .env
+groq_model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+
+llm = ChatGroq(
+    model=groq_model,
     temperature=0
 )

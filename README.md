@@ -2,7 +2,7 @@
 
 An intelligent, agentic research assistant that automates the process of gathering, analysing, and summarising information from the web. Instead of manually visiting multiple websites, the assistant searches relevant sources via DuckDuckGo, extracts and filters content, generates concise summaries, and produces a well-structured research report — all driven by a **LangGraph ReAct agent**.
 
-The project is built with **LangChain / LangGraph**, **Ollama** (Llama 3.2), **FastAPI**, and a modern **React + Vite** frontend. It runs entirely on your local machine — no cloud API keys are required by default.
+The project is built with **LangChain / LangGraph**, **Groq** (high-speed cloud inference), **FastAPI**, and a modern **React + Vite** frontend. It supports ultra-fast cloud LLM execution via Groq, making it lightweight and deployment-ready with no local GPU requirements.
 
 ---
 
@@ -31,7 +31,7 @@ The project is built with **LangChain / LangGraph**, **Ollama** (Llama 3.2), **F
 
 | Layer | Technology |
 |---|---|
-| **LLM** | Ollama — Llama 3.2 (local) |
+| **LLM** | Groq (`openai/gpt-oss-120b` or configurable via `GROQ_MODEL`) |
 | **Agent** | LangGraph `create_react_agent` with MemorySaver checkpointer |
 | **Chains** | LangChain `ChatPromptTemplate` → LLM → `StrOutputParser` |
 | **Web Search** | `DuckDuckGoSearchResults` (langchain-community) |
@@ -166,11 +166,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Pull the LLM Model
+### 3. Configure Groq API Key
 
-```bash
-ollama pull llama3.2
+Add your Groq API key to `.env` in the root directory:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+# Optional: customize model (defaults to openai/gpt-oss-120b)
+GROQ_MODEL=openai/gpt-oss-120b
 ```
+
 
 ### 4. Start the FastAPI Backend
 

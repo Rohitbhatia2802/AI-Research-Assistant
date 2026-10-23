@@ -2,17 +2,15 @@ langchain
 langchain-core
 langchain-community
 langchain-openai
+langchain-groq
+langgraph
+
+fastapi
+uvicorn
 
 duckduckgo-search
-
 beautifulsoup4
-
 lxml
-
 requests
-
 reportlab
-
 python-dotenv
-
-streamlit
