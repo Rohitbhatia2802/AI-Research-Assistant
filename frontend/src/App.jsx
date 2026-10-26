@@ -13,7 +13,8 @@ import {
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import ReportViewerModal from './components/ReportViewerModal';
-import { sendChatMessage, checkBackendHealth } from './api';
+import RateLimitBanner from './components/RateLimitBanner';
+import { sendChatMessage, checkBackendHealth, RateLimitError } from './api';
 import {
   loadAllSessions,
   saveSession,
@@ -66,6 +67,7 @@ export default function App() {
   const [isOnline, setIsOnline] = useState(true);
   const [previewReport, setPreviewReport] = useState(null);
   const [errorNotice, setErrorNotice] = useState(null);
+  const [rateLimitInfo, setRateLimitInfo] = useState(null);
 
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -114,6 +116,7 @@ export default function App() {
     setSessionId(null);
     setActiveSessionId(null);
     setErrorNotice(null);
+    setRateLimitInfo(null);
     setInput('');
   };
 
@@ -147,6 +150,7 @@ export default function App() {
     if (!textToSend || isLoading) return;
 
     setErrorNotice(null);
+    setRateLimitInfo(null);
 
     // If no active session, create one
     let currentSessionId = activeSessionId;
@@ -176,7 +180,18 @@ export default function App() {
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error(err);
-      setErrorNotice(err.message || 'Error occurred while contacting research assistant.');
+      if (err instanceof RateLimitError) {
+        setRateLimitInfo({
+          retryAfter: err.retryAfter,
+          limitType: err.limitType,
+          limitLabel: err.limitLabel,
+          serverMessage: err.serverMessage,
+        });
+        setErrorNotice(null);
+      } else {
+        setErrorNotice(err.message || 'Error occurred while contacting research assistant.');
+        setRateLimitInfo(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -291,7 +306,17 @@ export default function App() {
                 </div>
               )}
 
-              {errorNotice && (
+              {/* Rate-limit banner with countdown */}
+              {rateLimitInfo && (
+                <RateLimitBanner
+                  rateLimitInfo={rateLimitInfo}
+                  onDismiss={() => setRateLimitInfo(null)}
+                  onRetry={() => handleSend()}
+                />
+              )}
+
+              {/* Generic error notice */}
+              {errorNotice && !rateLimitInfo && (
                 <div
                   style={{
                     display: 'flex',
